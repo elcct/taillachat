@@ -1,0 +1,9 @@
+{
+	"secret": "secret",
+	"public_path": "./src/github.com/elcct/taillachat/public",
+	"template_path": "./src/github.com/elcct/taillachat/views",	
+	"database": {
+		"hosts": "localhost",
+		"database": "defaultproject"
+	}
+}

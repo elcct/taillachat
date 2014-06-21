@@ -1,0 +1,33 @@
+{{define "main"}}	
+	{{template "header" .}}
+	<div id="wrap">
+		<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="/" title="Tailla"><strong><span style="color: #5C4B51;">T</span><span style="color: #8CBEB2;">A</span><span style="background-color: #f0ad4e; color: #ffffff;"> I </span><span style="color: #A5C88F;">L</span><span style="color: #A5C88F;">L</span><span style="color: #EF847B;">A</span></strong> <small>beta</small></a>
+				</div>
+				<div class="collapse navbar-collapse">
+					<ul class="nav navbar-nav">
+						<li class="active"><p id="connection-status" class="navbar-text"></p></li>
+					</ul>			
+					<ul class="nav navbar-nav navbar-right">		
+						<li class="active navbar-right"><p class="navbar-text" style="margin-top: 0px;"><div class="fb-like" data-href="https://facebook.com/taillachat" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div></p></li>
+						<li></li>
+					</ul>
+				</div><!--/.nav-collapse -->
+
+			</div>	
+		</div>
+		<div class="container" role="main">
+			<a href="https://github.com/elcct/taillachat"><img style="position: absolute; top: 0; right: 0; border: 0; z-index: 2048;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+		{{.Content}}	
+		</div>
+	</div>
+	{{template "footer" .}}
+{{end}}
