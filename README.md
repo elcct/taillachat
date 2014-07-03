@@ -1,4 +1,4 @@
-Tailla Chat
+Tailla Chat [![Build Status](https://drone.io/github.com/elcct/taillachat/status.png)](https://drone.io/github.com/elcct/taillachat/latest)
 ===========
 
 Tailla Chat http://tailla.com/ is an anonymous chat and picture sharing web application written in Go.
