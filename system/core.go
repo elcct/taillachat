@@ -1,7 +1,6 @@
 package system
 
 import (
-	"encoding/gob"
 	"encoding/json"
 	"github.com/golang/glog"
 	"github.com/gorilla/sessions"
@@ -9,8 +8,6 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -18,22 +15,19 @@ import (
 	"strings"
 )
 
+// Application stores application resources
 type Application struct {
 	Configuration *Configuration
 	Template      *template.Template
 	Store         *sessions.CookieStore
-	DBSession     *mgo.Session
 	SockJS        *http.Handler
 }
 
-func (application *Application) Init(filename *string) {
-	gob.Register(bson.ObjectId(""))
-
+// Init reads and parses configuration file
+func (application *Application) Init(filename *string) (err error) {
 	data, err := ioutil.ReadFile(*filename)
-
 	if err != nil {
-		glog.Fatalf("Can't read configuration file: %s", err)
-		panic(err)
+		return
 	}
 
 	application.Configuration = &Configuration{}
@@ -41,13 +35,14 @@ func (application *Application) Init(filename *string) {
 	err = json.Unmarshal(data, &application.Configuration)
 
 	if err != nil {
-		glog.Fatalf("Can't parse configuration file: %s", err)
-		panic(err)
+		return
 	}
 
 	application.Store = sessions.NewCookieStore([]byte(application.Configuration.Secret))
+	return
 }
 
+// LoadTemplates loads templates
 func (application *Application) LoadTemplates() error {
 	var templates []string
 
@@ -68,21 +63,12 @@ func (application *Application) LoadTemplates() error {
 	return nil
 }
 
-func (application *Application) ConnectToDatabase() {
-	var err error
-	application.DBSession, err = mgo.Dial(application.Configuration.Database.Hosts)
-
-	if err != nil {
-		glog.Fatalf("Can't connect to the database: %v", err)
-		panic(err)
-	}
-}
-
+// Close releases allocated resources
 func (application *Application) Close() {
 	glog.Info("Bye!")
-	application.DBSession.Close()
 }
 
+// Route process declared route
 func (application *Application) Route(controller interface{}, route string) interface{} {
 	fn := func(c web.C, w http.ResponseWriter, r *http.Request) {
 		c.Env["Content-Type"] = "text/html"

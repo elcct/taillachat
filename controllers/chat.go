@@ -296,7 +296,7 @@ func Chat(session sockjs.Session) {
 					glog.Info("Chat session ended")
 					chatSession.Room.BroadcastOthers(sessionId, "exit", "")
 
-					for i, _ := range chatSession.Room.Sessions {
+					for i := range chatSession.Room.Sessions {
 						s := chatSession.Room.Sessions[i]
 						if s != chatSession {
 							s.Room = nil
