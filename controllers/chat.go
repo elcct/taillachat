@@ -1,27 +1,27 @@
 package controllers
 
 import (
-	"encoding/json"	
-	"gopkg.in/igm/sockjs-go.v2/sockjs"	
+	"encoding/json"
 	"github.com/elcct/taillachat/helpers"
+	"github.com/golang/glog"
 	"github.com/vincent-petithory/dataurl"
+	"gopkg.in/igm/sockjs-go.v2/sockjs"
 	"html/template"
+	"io/ioutil"
 	"math/rand"
 	"strconv"
-	"io/ioutil"
 	"time"
-	"github.com/golang/glog"	
 )
 
-var Template      *template.Template = nil
-var MediaContent	string = ""
+var Template *template.Template = nil
+var MediaContent string = ""
 
 type ChatMessage map[string]interface{}
 
 type ChatSession struct {
-	Id string
-	Region string
-	IsReady bool	
+	Id      string
+	Region  string
+	IsReady bool
 	Session *sockjs.Session
 
 	Room *ChatRoom
@@ -29,7 +29,7 @@ type ChatSession struct {
 
 type ChatMap struct {
 	Sessions map[string]*ChatSession
-	actions chan func()
+	actions  chan func()
 }
 
 type ChatRoom struct {
@@ -39,7 +39,7 @@ type ChatRoom struct {
 func (cr *ChatRoom) Broadcast(event string, data string) {
 	msg := &ChatMessage{
 		"event": event,
-		"data": data,
+		"data":  data,
 	}
 	out, _ := json.Marshal(msg)
 	body := string(out)
@@ -52,7 +52,7 @@ func (cr *ChatRoom) Broadcast(event string, data string) {
 func (cr *ChatRoom) BroadcastOthers(sessionId string, event string, data string) {
 	msg := &ChatMessage{
 		"event": event,
-		"data": data,
+		"data":  data,
 	}
 	out, _ := json.Marshal(msg)
 	body := string(out)
@@ -67,7 +67,7 @@ func (cr *ChatRoom) BroadcastOthers(sessionId string, event string, data string)
 func NewChatMap() *ChatMap {
 	chatMap := &ChatMap{
 		Sessions: make(map[string]*ChatSession),
-		actions: make(chan func()),
+		actions:  make(chan func()),
 	}
 
 	go func() {
@@ -91,7 +91,7 @@ func (cm *ChatMap) Get(id string) (session *ChatSession) {
 		session = cm.Sessions[id]
 		wait <- true
 	}
-	<- wait
+	<-wait
 	return
 }
 
@@ -102,13 +102,13 @@ func (cm *ChatMap) GetReadyIdsByRegion(region string) (sessions map[string]bool)
 	cm.actions <- func() {
 		for key := range cm.Sessions {
 			session := cm.Sessions[key]
-			if session.Region == region && session.IsReady {				
+			if session.Region == region && session.IsReady {
 				sessions[session.Id] = true
-			}			
+			}
 		}
 		wait <- true
 	}
-	<- wait	
+	<-wait
 	return
 }
 
@@ -117,15 +117,15 @@ func (cm *ChatMap) GetReadyIds() (sessions map[string]bool) {
 
 	wait := make(chan bool)
 	cm.actions <- func() {
-		for key := range cm.Sessions {			
+		for key := range cm.Sessions {
 			session := cm.Sessions[key]
 			if session.IsReady {
-				sessions[session.Id] = true			
+				sessions[session.Id] = true
 			}
 		}
 		wait <- true
 	}
-	<- wait	
+	<-wait
 	return
 }
 
@@ -145,7 +145,7 @@ func (cm *ChatMap) GetNumberOfReadyAndChatting() (ready int, chatting int) {
 		wait <- true
 	}
 
-	<- wait
+	<-wait
 	return
 }
 
@@ -161,7 +161,7 @@ func (cm *ChatMap) Action(fn func()) {
 		fn()
 		wait <- true
 	}
-	<- wait
+	<-wait
 }
 
 var ChatSessions = NewChatMap()
@@ -187,7 +187,7 @@ func ChatFindMatch(sessionId string, region string) (chatSession *ChatSession) {
 		}
 	}
 
-	delete(sessions, sessionId)	
+	delete(sessions, sessionId)
 
 	if len(sessions) > 0 {
 		otherSessionId := GetRandomKey(sessions)
@@ -199,12 +199,12 @@ func ChatFindMatch(sessionId string, region string) (chatSession *ChatSession) {
 }
 
 // Runs when user is ready to chat
-func ChatReady(sessionId string, region string) {	
+func ChatReady(sessionId string, region string) {
 	cs := ChatSessions.Get(sessionId)
 	if cs != nil {
 		ChatSessions.Action(func() {
 			cs.Region = region
-			cs.IsReady = true			
+			cs.IsReady = true
 		})
 	}
 
@@ -236,20 +236,20 @@ func ChatReady(sessionId string, region string) {
 func Chat(session sockjs.Session) {
 	glog.Info("Session started")
 	sessionId := session.ID()
-	
+
 	chatSession := &ChatSession{
-		Id: sessionId,
+		Id:      sessionId,
 		IsReady: false,
-		Session: &session,		
+		Session: &session,
 	}
 
 	ChatSessions.Set(sessionId, chatSession)
 
 	acceptedTypes := &map[string]string{
-		"image/jpeg": ".jpg", 
-		"image/jpg": ".jpg", 
-		"image/png": ".png", 
-		"image/gif": ".gif",
+		"image/jpeg": ".jpg",
+		"image/jpg":  ".jpg",
+		"image/png":  ".png",
+		"image/gif":  ".gif",
 	}
 
 	ticker := time.NewTicker(time.Second)
@@ -260,16 +260,16 @@ func Chat(session sockjs.Session) {
 
 		msg := &ChatMessage{
 			"event": "online",
-			"r": ready,
-			"c": chatting,
+			"r":     ready,
+			"c":     chatting,
 		}
 		out, _ := json.Marshal(msg)
 		body := string(out)
-		session.Send(body)		
+		session.Send(body)
 	}
 
 	go func() {
-		for _ = range ticker.C {		
+		for _ = range ticker.C {
 			online()
 		}
 	}()
@@ -281,60 +281,60 @@ func Chat(session sockjs.Session) {
 			json.Unmarshal([]byte(msg), &data)
 
 			switch data["event"] {
-				case "ready":
-					ChatReady(sessionId, data["region"].(string))
-				case "typing":
-					ChatSessions.Action(func() {
-						chatSession.Room.BroadcastOthers(sessionId, "typing", strconv.FormatBool(data["typing"].(bool)))
-					})
-				case "send":
-					ChatSessions.Action(func() {
-						chatSession.Room.BroadcastOthers(sessionId, "message", data["message"].(string))
-					})
-				case "exit":
-					ChatSessions.Action(func() {
-						glog.Info("Chat session ended")
-						chatSession.Room.BroadcastOthers(sessionId, "exit", "")
+			case "ready":
+				ChatReady(sessionId, data["region"].(string))
+			case "typing":
+				ChatSessions.Action(func() {
+					chatSession.Room.BroadcastOthers(sessionId, "typing", strconv.FormatBool(data["typing"].(bool)))
+				})
+			case "send":
+				ChatSessions.Action(func() {
+					chatSession.Room.BroadcastOthers(sessionId, "message", data["message"].(string))
+				})
+			case "exit":
+				ChatSessions.Action(func() {
+					glog.Info("Chat session ended")
+					chatSession.Room.BroadcastOthers(sessionId, "exit", "")
 
-						for i, _ := range chatSession.Room.Sessions {
-							s := chatSession.Room.Sessions[i]
-							if s != chatSession {
-								s.Room = nil
-							}
-							//s.IsReady = true
+					for i, _ := range chatSession.Room.Sessions {
+						s := chatSession.Room.Sessions[i]
+						if s != chatSession {
+							s.Room = nil
 						}
-						chatSession.Room = nil
-					})					
-				case "picture":
-					glog.Info("Picture received")
-					ChatSessions.Action(func() {						
-						chatSession.Room.BroadcastOthers(sessionId, "picturebefore", "true")
-						dataURL, err := dataurl.DecodeString(data["data"].(string))
+						//s.IsReady = true
+					}
+					chatSession.Room = nil
+				})
+			case "picture":
+				glog.Info("Picture received")
+				ChatSessions.Action(func() {
+					chatSession.Room.BroadcastOthers(sessionId, "picturebefore", "true")
+					dataURL, err := dataurl.DecodeString(data["data"].(string))
+					if err != nil {
+						glog.Error("Problem decoding file: ", err)
+					}
+					filename := helpers.GetRandomString(8)
+
+					mt := dataURL.ContentType()
+
+					if ext, ok := (*acceptedTypes)[mt]; ok {
+						err = ioutil.WriteFile(MediaContent+filename+ext, dataURL.Data, 0644)
 						if err != nil {
-							glog.Error("Problem decoding file: ", err)
+							glog.Error("Error saving file: ", err)
 						}
-						filename := helpers.GetRandomString(8)
-
-						mt := dataURL.ContentType()
-
-						if ext, ok := (*acceptedTypes)[mt]; ok {
-							err = ioutil.WriteFile(MediaContent + filename + ext, dataURL.Data, 0644)
-							if err != nil {
-								glog.Error("Error saving file: ", err)
-							}
-							chatSession.Room.BroadcastOthers(sessionId, "picture", data["data"].(string))
-						}
-					})
+						chatSession.Room.BroadcastOthers(sessionId, "picture", data["data"].(string))
+					}
+				})
 			}
 
 			continue
 		}
 		break
 	}
- 
+
 	ticker.Stop()
 
 	ChatSessions.Close(sessionId)
-	
+
 	glog.Info("Session closed")
 }

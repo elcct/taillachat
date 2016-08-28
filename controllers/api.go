@@ -7,4 +7,3 @@ import (
 type ApiController struct {
 	system.Controller
 }
-

@@ -1,22 +1,19 @@
 package controllers
 
-import (			
-	//"github.com/golang/glog"
-	"net/http"
-
-	"github.com/zenazn/goji/web"
-	"html/template"
+import (
 	"github.com/elcct/taillachat/helpers"
 	"github.com/elcct/taillachat/system"
+	"github.com/zenazn/goji/web"
+	"html/template"
+	"net/http"
 )
 
 type MainController struct {
 	system.Controller
 }
 
-func (controller *MainController) Index(c web.C, r *http.Request) (string, int) {	
+func (controller *MainController) Index(c web.C, r *http.Request) (string, int) {
 	t := controller.GetTemplate(c)
-
 
 	widgets := helpers.Parse(t, "home", nil)
 
@@ -24,11 +21,11 @@ func (controller *MainController) Index(c web.C, r *http.Request) (string, int) 
 
 	c.Env["Title"] = "Tailla Chat - Best UK Chat"
 	c.Env["SocketURL"] = "/chat"
-	
+
 	return helpers.Parse(t, "main", c.Env), http.StatusOK
 }
 
-func (controller *MainController) Terms(c web.C, r *http.Request) (string, int) {	
+func (controller *MainController) Terms(c web.C, r *http.Request) (string, int) {
 	t := controller.GetTemplate(c)
 
 	c.Env["Title"] = "Tailla Chat - Best UK Chat - Terms"
@@ -36,11 +33,11 @@ func (controller *MainController) Terms(c web.C, r *http.Request) (string, int) 
 	widgets := helpers.Parse(t, "terms", nil)
 
 	c.Env["Content"] = template.HTML(widgets)
-	
+
 	return helpers.Parse(t, "main", c.Env), http.StatusOK
 }
 
-func (controller *MainController) Privacy(c web.C, r *http.Request) (string, int) {	
+func (controller *MainController) Privacy(c web.C, r *http.Request) (string, int) {
 	t := controller.GetTemplate(c)
 
 	c.Env["Title"] = "Tailla Chat - Best UK Chat - Privacy"
@@ -48,7 +45,6 @@ func (controller *MainController) Privacy(c web.C, r *http.Request) (string, int
 	widgets := helpers.Parse(t, "privacy", nil)
 
 	c.Env["Content"] = template.HTML(widgets)
-	
+
 	return helpers.Parse(t, "main", c.Env), http.StatusOK
 }
-

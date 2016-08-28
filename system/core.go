@@ -1,27 +1,21 @@
 package system
 
-import (	
-	"encoding/json"
+import (
 	"encoding/gob"
+	"encoding/json"
 	"github.com/golang/glog"
-	"net/http"
-	
-	"reflect"
-
-	"github.com/zenazn/goji/web"
-
 	"github.com/gorilla/sessions"
-
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
-	
+	"github.com/zenazn/goji/web"
 	"html/template"
-
 	"io"
 	"io/ioutil"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+	"net/http"
 	"os"
 	"path/filepath"
-	"strings"	
+	"reflect"
+	"strings"
 )
 
 type Application struct {
@@ -29,7 +23,7 @@ type Application struct {
 	Template      *template.Template
 	Store         *sessions.CookieStore
 	DBSession     *mgo.Session
-	SockJS		  *http.Handler
+	SockJS        *http.Handler
 }
 
 func (application *Application) Init(filename *string) {
@@ -57,9 +51,9 @@ func (application *Application) Init(filename *string) {
 func (application *Application) LoadTemplates() error {
 	var templates []string
 
-	fn := func(path string, f os.FileInfo, err error) error {		
-		if f.IsDir() != true && strings.HasSuffix(f.Name(), ".html") {			
-			templates = append(templates, path)			
+	fn := func(path string, f os.FileInfo, err error) error {
+		if f.IsDir() != true && strings.HasSuffix(f.Name(), ".html") {
+			templates = append(templates, path)
 		}
 		return nil
 	}
@@ -73,7 +67,6 @@ func (application *Application) LoadTemplates() error {
 	application.Template = template.Must(template.ParseFiles(templates...))
 	return nil
 }
-
 
 func (application *Application) ConnectToDatabase() {
 	var err error
@@ -90,8 +83,8 @@ func (application *Application) Close() {
 	application.DBSession.Close()
 }
 
-func (application *Application) Route(controller interface{}, route string) interface{} {	
-	fn := func(c web.C, w http.ResponseWriter, r *http.Request) {		
+func (application *Application) Route(controller interface{}, route string) interface{} {
+	fn := func(c web.C, w http.ResponseWriter, r *http.Request) {
 		c.Env["Content-Type"] = "text/html"
 
 		methodValue := reflect.ValueOf(controller).MethodByName(route)
@@ -100,21 +93,21 @@ func (application *Application) Route(controller interface{}, route string) inte
 
 		body, code := method(c, r)
 
-		if session, exists := c.Env["Session"]; exists {		
+		if session, exists := c.Env["Session"]; exists {
 			err := session.(*sessions.Session).Save(r, w)
 			if err != nil {
-				glog.Errorf("Can't save session: %v", err)				
+				glog.Errorf("Can't save session: %v", err)
 			}
 		}
 
 		switch code {
-			case http.StatusOK:
-				if _, exists := c.Env["Content-Type"]; exists {
-					w.Header().Set("Content-Type", c.Env["Content-Type"].(string))	
-				}
-				io.WriteString(w, body)				
-			case http.StatusSeeOther, http.StatusFound:
-				http.Redirect(w, r, body, code)				
+		case http.StatusOK:
+			if _, exists := c.Env["Content-Type"]; exists {
+				w.Header().Set("Content-Type", c.Env["Content-Type"].(string))
+			}
+			io.WriteString(w, body)
+		case http.StatusSeeOther, http.StatusFound:
+			http.Redirect(w, r, body, code)
 		}
 	}
 	return fn

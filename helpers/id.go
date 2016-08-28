@@ -6,7 +6,7 @@ import (
 )
 
 func GetRandomString(n int) string {
-	s := make([]byte, n) 
-	rand.Read(s)	
+	s := make([]byte, n)
+	rand.Read(s)
 	return hex.EncodeToString(s)
 }

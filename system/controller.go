@@ -2,13 +2,13 @@ package system
 
 import (
 	"bytes"
+	"github.com/gorilla/sessions"
+	"github.com/zenazn/goji/web"
 	"html/template"
 	"labix.org/v2/mgo"
-	"github.com/zenazn/goji/web"
-	"github.com/gorilla/sessions"
 )
 
-type Controller struct {	
+type Controller struct {
 }
 
 func (controller *Controller) GetSession(c web.C) *sessions.Session {

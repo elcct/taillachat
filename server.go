@@ -2,16 +2,14 @@ package main
 
 import (
 	"flag"
-	"github.com/golang/glog"
-	"net/http"
-
 	"github.com/elcct/taillachat/controllers"
 	"github.com/elcct/taillachat/system"
-	"gopkg.in/igm/sockjs-go.v2/sockjs"
-
+	"github.com/golang/glog"
 	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/graceful"
 	"github.com/zenazn/goji/web"
+	"gopkg.in/igm/sockjs-go.v2/sockjs"
+	"net/http"
 )
 
 func main() {

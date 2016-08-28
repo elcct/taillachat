@@ -1,9 +1,9 @@
 package helpers
 
 import (
-	"html/template"
 	"bytes"
 	"fmt"
+	"html/template"
 )
 
 func Parse(t *template.Template, name string, data interface{}) string {
@@ -14,4 +14,3 @@ func Parse(t *template.Template, name string, data interface{}) string {
 	}
 	return doc.String()
 }
-

@@ -1,19 +1,19 @@
 package models
 
 import (
+	"github.com/golang/glog"
+	"golang.org/x/crypto/bcrypt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"code.google.com/p/go.crypto/bcrypt"
-	"github.com/golang/glog"
 	"time"
 )
 
 type User struct {
-  ID       bson.ObjectId `bson:"_id,omitempty"`
-  Email string `bson:"e"`
-  Username string `bson:"u"`
-  Password []byte  `bson:"p"`
-  Timestamp time.Time `bson:"t"`
+	ID        bson.ObjectId `bson:"_id,omitempty"`
+	Email     string        `bson:"e"`
+	Username  string        `bson:"u"`
+	Password  []byte        `bson:"p"`
+	Timestamp time.Time     `bson:"t"`
 }
 
 func (user *User) HashPassword(password string) {
@@ -30,11 +30,11 @@ func GetUserByEmail(database *mgo.Database, email string) (user *User) {
 
 	if err != nil {
 		glog.Warningf("Can't get user by email: %v", err)
-	}	
+	}
 	return
 }
 
-func InsertUser(database *mgo.Database, user *User) error {	
+func InsertUser(database *mgo.Database, user *User) error {
 	user.ID = bson.NewObjectId()
-	return database.C("users").Insert(user)	
+	return database.C("users").Insert(user)
 }
