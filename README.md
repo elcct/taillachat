@@ -10,65 +10,35 @@ It consists of 4 core components:
 - Goji - A web microframework for Golang - http://goji.io/
 - Gorilla web toolkit sessions - cookie (and filesystem) sessions - http://www.gorillatoolkit.org/pkg/sessions
 - SockJS - WebSocket emulation - https://github.com/sockjs
-- mgo - MongoDB driver for the Go language - http://labix.org/mgo
-
-Note: MongoDB is currently not used for anything, but it will be to store messages and perhaps user accounts.
 
 # Dependencies
 
-Tailla Chat requires `Go`, `MongoDB` and few other tools installed.
+Tailla Chat requires `Go`.
 
-Instructions below have been tested on `Ubuntu 14.04`.
+Instructions below have been tested on `Ubuntu 16.04`.
 
 ## Installation
 
-If you don't have `Go` installed, follow installation instructions described here: http://golang.org/doc/install
-
-Then install remaining dependecies:
+To install Tailla Chat issue:
 
 ```
-sudo apt-get install make git mercurial subversion bzr
+go get -u github.com/elcct/taillachat
 ```
 
-MongoDB:
-
-```
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
-sudo echo 'deb http://downloads-distro.mongodb.org/repo/debian-sysvinit dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
-sudo apt-get update
-sudo apt-get install mongodb-org
-```
-
-No go to your GOPATH location and run:
-
-```
-go get github.com/elcct/taillachat
-```
-
-And then:
-
-```
-go install github.com/elcct/taillachat
-```
-
-In your GOPATH directory you can create `config.json` file:
+In your `GOPATH` directory you can create `config.json` file:
 
 ```
 {
 	"secret": "secret",
 	"public_path": "./src/github.com/elcct/taillachat/public",
-	"template_path": "./src/github.com/elcct/taillachat/views",	
-	"database": {
-		"hosts": "localhost",
-		"database": "defaultproject"
-	}
+	"template_path": "./src/github.com/elcct/taillachat/views"
 }
 ```
 
 Finally, you can run:
 
 ```
-./bin/taillachat
+$GOPATH/bin/taillachat
 ```
 
 That should output something like:
@@ -84,4 +54,3 @@ And it means you can now direct your browser to `localhost:8000`
 Tailla Chat uses Skype Emoticons via https://github.com/kof/emoticons/
 
 Check license: https://github.com/kof/emoticons/blob/master/LICENSE
-

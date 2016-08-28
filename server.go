@@ -22,7 +22,6 @@ func main() {
 
 	application.Init(filename)
 	application.LoadTemplates()
-	application.ConnectToDatabase()
 
 	// Setup static files
 	static := web.New()
@@ -39,7 +38,6 @@ func main() {
 	// Apply middleware
 	goji.Use(application.ApplyTemplates)
 	goji.Use(application.ApplySessions)
-	goji.Use(application.ApplyDatabase)
 	goji.Use(application.ApplyAuth)
 
 	controller := &controllers.MainController{}
