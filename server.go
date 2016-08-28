@@ -2,15 +2,21 @@ package main
 
 import (
 	"flag"
-	"github.com/elcct/taillachat/controllers"
+	"github.com/elcct/taillachat/api"
 	"github.com/elcct/taillachat/system"
 	"github.com/golang/glog"
-	"github.com/zenazn/goji"
-	"github.com/zenazn/goji/graceful"
-	"github.com/zenazn/goji/web"
+	"github.com/gorilla/mux"
 	"gopkg.in/igm/sockjs-go.v2/sockjs"
 	"net/http"
 )
+
+// use is a middleware chainer
+func use(h http.Handler, middleware ...func(http.Handler) http.Handler) http.Handler {
+	for _, m := range middleware {
+		h = m(h)
+	}
+	return h
+}
 
 func main() {
 	filename := flag.String("config", "config.json", "Path to configuration file")
@@ -18,36 +24,21 @@ func main() {
 	flag.Parse()
 	defer glog.Flush()
 
-	var application = &system.Application{}
+	system.Init(filename)
+	system.LoadTemplates()
 
-	application.Init(filename)
-	application.LoadTemplates()
+	api.Template = system.CurrentApplication.Template
+	api.MediaContent = system.CurrentApplication.Configuration.PublicPath + "/uploads/"
 
+	router := mux.NewRouter()
 	// Setup static files
-	static := web.New()
-	static.Get("/assets/*", http.StripPrefix("/assets/", http.FileServer(http.Dir(application.Configuration.PublicPath))))
+	router.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir(system.CurrentApplication.Configuration.PublicPath))))
 
-	http.Handle("/assets/", static)
+	router.Path("/chat/{any:.*}").Handler(sockjs.NewHandler("/chat", sockjs.DefaultOptions, api.Chat))
 
-	// That's probably a terrible idea
-	controllers.Template = application.Template
-	controllers.MediaContent = application.Configuration.PublicPath + "/uploads/"
+	router.Handle("/", use(http.HandlerFunc(api.Index), system.Templates))
+	router.Handle("/terms", use(http.HandlerFunc(api.Terms), system.Templates))
+	router.Handle("/privacy", use(http.HandlerFunc(api.Privacy), system.Templates))
 
-	http.Handle("/chat/", sockjs.NewHandler("/chat", sockjs.DefaultOptions, controllers.Chat))
-
-	// Apply middleware
-	goji.Use(application.ApplyTemplates)
-	goji.Use(application.ApplySessions)
-	goji.Use(application.ApplyAuth)
-
-	controller := &controllers.MainController{}
-
-	goji.Get("/", application.Route(controller, "Index"))
-	goji.Get("/terms", application.Route(controller, "Terms"))
-	goji.Get("/privacy", application.Route(controller, "Privacy"))
-
-	graceful.PostHook(func() {
-		application.Close()
-	})
-	goji.Serve()
+	http.ListenAndServe(":8000", router)
 }
