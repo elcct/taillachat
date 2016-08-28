@@ -1,12 +1,7 @@
 Tailla Chat [![Build Status](https://drone.io/github.com/elcct/taillachat/status.png)](https://drone.io/github.com/elcct/taillachat/latest)
 ===========
 
-Tailla Chat http://tailla.com/ is an anonymous chat and picture sharing web application written in Go.
-
-Tailla Chat uses:
-
-- Gorilla web toolkit sessions - cookie (and filesystem) sessions - http://www.gorillatoolkit.org/pkg/sessions
-- SockJS - WebSocket emulation - https://github.com/sockjs
+Tailla Chat https://tailla.com/ is an anonymous chat and picture sharing web application written in Go.
 
 # Dependencies
 
