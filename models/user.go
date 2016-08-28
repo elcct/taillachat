@@ -1,40 +1,31 @@
 package models
 
 import (
-	"github.com/golang/glog"
 	"golang.org/x/crypto/bcrypt"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"time"
 )
 
+// User represents user data model
 type User struct {
-	ID        bson.ObjectId `bson:"_id,omitempty"`
-	Email     string        `bson:"e"`
-	Username  string        `bson:"u"`
-	Password  []byte        `bson:"p"`
-	Timestamp time.Time     `bson:"t"`
+	ID        uint      `json:"id"`
+	Email     string    `json:"email"`
+	Username  string    `json:"username"`
+	Password  string    `json:"password"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
-func (user *User) HashPassword(password string) {
+// HashPassword creates hash out of provided plain-text password
+func (u *User) HashPassword(password string) (err error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		glog.Fatalf("Couldn't hash password: %v", err)
-		panic(err)
+		return
 	}
-	user.Password = hash
-}
-
-func GetUserByEmail(database *mgo.Database, email string) (user *User) {
-	err := database.C("users").Find(bson.M{"e": email}).One(&user)
-
-	if err != nil {
-		glog.Warningf("Can't get user by email: %v", err)
-	}
+	u.Password = string(hash)
 	return
 }
 
-func InsertUser(database *mgo.Database, user *User) error {
-	user.ID = bson.NewObjectId()
-	return database.C("users").Insert(user)
+// ComparePassword compares provided plain-text password with model's hashed password
+func (u *User) ComparePassword(password string) (err error) {
+	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+	return
 }
