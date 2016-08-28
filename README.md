@@ -3,11 +3,8 @@ Tailla Chat [![Build Status](https://drone.io/github.com/elcct/taillachat/status
 
 Tailla Chat http://tailla.com/ is an anonymous chat and picture sharing web application written in Go.
 
-Tailla Chat has been built using `Default Project` - http://defaultproject.com/
+Tailla Chat uses:
 
-It consists of 4 core components:
-
-- Goji - A web microframework for Golang - http://goji.io/
 - Gorilla web toolkit sessions - cookie (and filesystem) sessions - http://www.gorillatoolkit.org/pkg/sessions
 - SockJS - WebSocket emulation - https://github.com/sockjs
 
