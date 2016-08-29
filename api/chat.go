@@ -40,7 +40,7 @@ func findMatch(sessionID string, region string) (chatSession *chat.Session) {
 	return
 }
 
-// ChatReady runs when user is ready to chat
+// chatReady runs when user is ready to chat
 func chatReady(sessionID string, region string) {
 	cs := chatMap.Get(sessionID)
 	if cs != nil {
