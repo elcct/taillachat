@@ -17,19 +17,10 @@ To install Tailla Chat issue:
 go get -u github.com/elcct/taillachat
 ```
 
-In your `GOPATH` directory you can create `config.json` file:
+Then you start it:
 
 ```
-{
-	"public_path": "./src/github.com/elcct/taillachat/public",
-	"template_path": "./src/github.com/elcct/taillachat/views"
-}
-```
-
-Finally, you can run:
-
-```
-$GOPATH/bin/taillachat
+TAILLA_PUBLIC_PATH=$GOPATH/src/github.com/elcct/taillachat/public TAILLA_TEMPLATE_PATH=$GOPATH/src/github.com/elcct/taillachat/views $GOPATH/bin/taillachat
 ```
 
 You can now direct your browser to `localhost:8000`

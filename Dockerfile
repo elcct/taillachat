@@ -8,4 +8,4 @@ RUN go get -u github.com/elcct/taillachat
 
 EXPOSE 8000
 
-CMD taillachat
+CMD TAILLA_TEMPLATE_PATH=$GOPATH/src/github.com/elcct/taillachat/views $GOPATH/bin/taillachat/elcct

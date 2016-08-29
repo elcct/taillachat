@@ -19,7 +19,7 @@ func (r *Room) Broadcast(event string, data string) {
 	body := string(out)
 
 	for _, cs := range r.Sessions {
-		(*cs.Session).Send(body)
+		cs.Session.Send(body)
 	}
 }
 
@@ -34,7 +34,7 @@ func (r *Room) BroadcastOthers(sessionID string, event string, data string) {
 
 	for _, cs := range r.Sessions {
 		if cs.ID != sessionID {
-			(*cs.Session).Send(body)
+			cs.Session.Send(body)
 		}
 	}
 }

@@ -92,7 +92,7 @@ func Chat(session sockjs.Session) {
 	chatSession := &chat.Session{
 		ID:      sessionID,
 		IsReady: false,
-		Session: &session,
+		Session: session,
 	}
 
 	ChatSessions.Set(sessionID, chatSession)
