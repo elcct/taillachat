@@ -5,7 +5,7 @@ Tailla Chat https://tailla.com/ is an anonymous chat and picture sharing web app
 
 # Dependencies
 
-Tailla Chat requires `Go`.
+Tailla Chat requires `Go` 1.7.
 
 Instructions below have been tested on `Ubuntu 16.04`.
 

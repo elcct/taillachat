@@ -1,11 +1,11 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"github.com/elcct/taillachat/api"
 	"github.com/elcct/taillachat/system"
 	"github.com/golang/glog"
-	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"gopkg.in/igm/sockjs-go.v2/sockjs"
 	"net/http"
@@ -47,7 +47,7 @@ func main() {
 // Templates adds templates to the context
 func templates(inner http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		context.Set(r, "template", system.CurrentApplication.Template)
-		inner.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), "template", system.CurrentApplication.Template)
+		inner.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
