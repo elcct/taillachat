@@ -9,63 +9,53 @@ import (
 	"gopkg.in/igm/sockjs-go.v2/sockjs"
 	"html/template"
 	"io/ioutil"
-	"math/rand"
 	"strconv"
 	"time"
 )
 
 var Template *template.Template = nil
 var MediaContent string = ""
-var ChatSessions = chat.NewMap()
 
-func GetRandomKey(data map[string]bool) string {
-	keys := make([]string, 0, len(data))
-	for key := range data {
-		keys = append(keys, key)
-	}
-	n := rand.Intn(len(keys))
-	return keys[n]
-}
+var chatMap = chat.NewMap()
 
-func ChatFindMatch(sessionId string, region string) (chatSession *chat.Session) {
+func findMatch(sessionID string, region string) (chatSession *chat.Session) {
 	var sessions map[string]bool
 
 	if region == "All UK" {
-		sessions = ChatSessions.GetReadyIds()
+		sessions = chatMap.GetReadyIds()
 	} else {
-		sessions = ChatSessions.GetReadyIdsByRegion(region)
+		sessions = chatMap.GetReadyIdsByRegion(region)
 		if len(sessions) < 2 {
-			sessions = ChatSessions.GetReadyIds()
+			sessions = chatMap.GetReadyIds()
 		}
 	}
 
-	delete(sessions, sessionId)
+	delete(sessions, sessionID)
 
 	if len(sessions) > 0 {
-		otherSessionId := GetRandomKey(sessions)
-
-		return ChatSessions.Get(otherSessionId)
+		otherSessionID := helpers.GetRandomKey(sessions)
+		return chatMap.Get(otherSessionID)
 	}
 
 	return
 }
 
-// Runs when user is ready to chat
-func ChatReady(sessionId string, region string) {
-	cs := ChatSessions.Get(sessionId)
+// ChatReady runs when user is ready to chat
+func chatReady(sessionID string, region string) {
+	cs := chatMap.Get(sessionID)
 	if cs != nil {
-		ChatSessions.Action(func() {
+		chatMap.Action(func() {
 			cs.Region = region
 			cs.IsReady = true
 		})
 	}
 
 	// Let's find match
-	partner := ChatFindMatch(sessionId, region)
+	partner := findMatch(sessionID, region)
 
 	if partner != nil {
 		// Let's create a chat!
-		ChatSessions.Action(func() {
+		chatMap.Action(func() {
 			glog.Info("Chat session started")
 			cs.IsReady = false
 			partner.IsReady = false
@@ -85,6 +75,7 @@ func ChatReady(sessionId string, region string) {
 	}
 }
 
+// Chat handles new sockjs Session
 func Chat(session sockjs.Session) {
 	glog.Info("Session started")
 	sessionID := session.ID()
@@ -95,7 +86,7 @@ func Chat(session sockjs.Session) {
 		Session: session,
 	}
 
-	ChatSessions.Set(sessionID, chatSession)
+	chatMap.Set(sessionID, chatSession)
 
 	acceptedTypes := &map[string]string{
 		"image/jpeg": ".jpg",
@@ -108,7 +99,7 @@ func Chat(session sockjs.Session) {
 
 	// Not too nice, will be refactored later...
 	online := func() {
-		ready, chatting := ChatSessions.GetNumberOfReadyAndChatting()
+		ready, chatting := chatMap.GetNumberOfReadyAndChatting()
 
 		msg := &chat.Message{
 			"event": "online",
@@ -134,21 +125,21 @@ func Chat(session sockjs.Session) {
 
 			switch data["event"] {
 			case "ready":
-				ChatReady(sessionID, data["region"].(string))
+				chatReady(sessionID, data["region"].(string))
 			case "typing":
-				ChatSessions.Action(func() {
+				chatMap.Action(func() {
 					chatSession.Room.BroadcastOthers(sessionID, "typing", strconv.FormatBool(data["typing"].(bool)))
 				})
 			case "send":
-				ChatSessions.Action(func() {
+				chatMap.Action(func() {
 					chatSession.Room.BroadcastOthers(sessionID, "message", data["message"].(string))
 				})
 			case "exit":
-				ChatSessions.Action(func() {
+				chatMap.Action(func() {
 					glog.Info("Chat session ended")
 					chatSession.Room.BroadcastOthers(sessionID, "exit", "")
 
-					for i, _ := range chatSession.Room.Sessions {
+					for i := range chatSession.Room.Sessions {
 						s := chatSession.Room.Sessions[i]
 						if s != chatSession {
 							s.Room = nil
@@ -159,7 +150,7 @@ func Chat(session sockjs.Session) {
 				})
 			case "picture":
 				glog.Info("Picture received")
-				ChatSessions.Action(func() {
+				chatMap.Action(func() {
 					chatSession.Room.BroadcastOthers(sessionID, "picturebefore", "true")
 					dataURL, err := dataurl.DecodeString(data["data"].(string))
 					if err != nil {
@@ -186,7 +177,7 @@ func Chat(session sockjs.Session) {
 
 	ticker.Stop()
 
-	ChatSessions.Close(sessionID)
+	chatMap.Close(sessionID)
 
 	glog.Info("Session closed")
 }

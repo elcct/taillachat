@@ -42,11 +42,13 @@ func Init() (err error) {
 	config.Bind = bind
 
 	CurrentApplication.Configuration = config
+
+	loadTemplates()
 	return
 }
 
-// LoadTemplates loads templates
-func LoadTemplates() (err error) {
+// loadTemplates loads templates
+func loadTemplates() (err error) {
 	var templates []string
 
 	fn := func(path string, f os.FileInfo, err error) error {
