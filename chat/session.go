@@ -7,8 +7,8 @@ import (
 // Session keeps current chat session
 type Session struct {
 	ID      string
-	Region  string
-	IsReady bool
 	Session *sockjs.Session
 	Room    *Room
+	Region  string
+	IsReady bool
 }
