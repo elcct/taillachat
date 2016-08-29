@@ -24,19 +24,16 @@ func NewMap() *Map {
 
 // Set assigns session to the sessions map
 func (m *Map) Set(id string, session *Session) {
-	m.actions <- func() {
+	m.Action(func() {
 		m.Sessions[id] = session
-	}
+	})
 }
 
 // Get gets session from the sessions map
 func (m *Map) Get(id string) (session *Session) {
-	wait := make(chan bool)
-	m.actions <- func() {
+	m.Action(func() {
 		session = m.Sessions[id]
-		wait <- true
-	}
-	<-wait
+	})
 	return
 }
 
@@ -44,17 +41,14 @@ func (m *Map) Get(id string) (session *Session) {
 func (m *Map) GetReadyIdsByRegion(region string) (sessions map[string]bool) {
 	sessions = make(map[string]bool)
 
-	wait := make(chan bool)
-	m.actions <- func() {
+	m.Action(func() {
 		for key := range m.Sessions {
 			session := m.Sessions[key]
 			if session.Region == region && session.IsReady {
 				sessions[session.ID] = true
 			}
 		}
-		wait <- true
-	}
-	<-wait
+	})
 	return
 }
 
@@ -62,25 +56,20 @@ func (m *Map) GetReadyIdsByRegion(region string) (sessions map[string]bool) {
 func (m *Map) GetReadyIds() (sessions map[string]bool) {
 	sessions = make(map[string]bool)
 
-	wait := make(chan bool)
-	m.actions <- func() {
+	m.Action(func() {
 		for key := range m.Sessions {
 			session := m.Sessions[key]
 			if session.IsReady {
 				sessions[session.ID] = true
 			}
 		}
-		wait <- true
-	}
-	<-wait
+	})
 	return
 }
 
 // GetNumberOfReadyAndChatting gets number of sessions ready and already chatting
 func (m *Map) GetNumberOfReadyAndChatting() (ready int, chatting int) {
-	wait := make(chan bool)
-
-	m.actions <- func() {
+	m.Action(func() {
 		for key := range m.Sessions {
 			session := m.Sessions[key]
 			if session.IsReady {
@@ -90,18 +79,16 @@ func (m *Map) GetNumberOfReadyAndChatting() (ready int, chatting int) {
 				chatting++
 			}
 		}
-		wait <- true
-	}
+	})
 
-	<-wait
 	return
 }
 
 // Close closes defined session
 func (m *Map) Close(id string) {
-	m.actions <- func() {
+	m.Action(func() {
 		delete(m.Sessions, id)
-	}
+	})
 }
 
 // Action sends action to be perform on the sessions
