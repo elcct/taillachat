@@ -19,12 +19,14 @@ func use(h http.Handler, middleware ...func(http.Handler) http.Handler) http.Han
 }
 
 func main() {
-	filename := flag.String("config", "config.json", "Path to configuration file")
-
 	flag.Parse()
 	defer glog.Flush()
 
-	system.Init(filename)
+	err := system.Init()
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	system.LoadTemplates()
 
 	api.Template = system.CurrentApplication.Template
@@ -40,5 +42,5 @@ func main() {
 	router.Handle("/terms", use(http.HandlerFunc(api.Terms), system.Templates))
 	router.Handle("/privacy", use(http.HandlerFunc(api.Privacy), system.Templates))
 
-	http.ListenAndServe(":8000", router)
+	glog.Error(http.ListenAndServe(system.CurrentApplication.Configuration.Bind, router))
 }

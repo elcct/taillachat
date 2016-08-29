@@ -1,9 +1,8 @@
 package system
 
 import (
-	"encoding/json"
+	"errors"
 	"html/template"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -21,19 +20,28 @@ type Application struct {
 var CurrentApplication = &Application{}
 
 // Init reads and parses configuration file
-func Init(filename *string) (err error) {
-	data, err := ioutil.ReadFile(*filename)
-	if err != nil {
-		return
+func Init() (err error) {
+	config := &Configuration{}
+
+	publicPath := os.Getenv("TAILLA_PUBLIC_PATH")
+	templatePath := os.Getenv("TAILLA_TEMPLATE_PATH")
+	bind := os.Getenv("TAILLA_BIND")
+
+	if publicPath == "" {
+		return errors.New("Missing TAILLA_PUBLIC_PATH")
+	}
+	if templatePath == "" {
+		return errors.New("Missing TAILLA_TEMPLATE_PATH")
+	}
+	if bind == "" {
+		bind = "0.0.0.0:8000"
 	}
 
-	CurrentApplication.Configuration = &Configuration{}
+	config.PublicPath = publicPath
+	config.TemplatePath = templatePath
+	config.Bind = bind
 
-	err = json.Unmarshal(data, &CurrentApplication.Configuration)
-	if err != nil {
-		return
-	}
-
+	CurrentApplication.Configuration = config
 	return
 }
 
