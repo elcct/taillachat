@@ -1,5 +1,5 @@
-Tailla Chat
-===========
+Tailla Chat [![Build Status](https://travis-ci.org/elcct/taillachat.svg?branch=master)](https://travis-ci.org/elcct/taillachat)
+=================================================================================================================================
 
 Tailla Chat https://tailla.com/ is an anonymous chat and picture sharing web application written in Go.
 
