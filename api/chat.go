@@ -13,6 +13,13 @@ import (
 	"time"
 )
 
+var acceptedTypes = &map[string]string{
+	"image/jpeg": ".jpg",
+	"image/jpg":  ".jpg",
+	"image/png":  ".png",
+	"image/gif":  ".gif",
+}
+
 var Template *template.Template = nil
 var MediaContent string = ""
 
@@ -44,7 +51,7 @@ func findMatch(sessionID string, region string) (chatSession *chat.Session) {
 func chatReady(sessionID string, region string) {
 	cs := chatMap.Get(sessionID)
 	if cs != nil {
-		chatMap.Action(func() {
+		chatMap.RAction(func() {
 			cs.Region = region
 			cs.IsReady = true
 		})
@@ -55,7 +62,7 @@ func chatReady(sessionID string, region string) {
 
 	if partner != nil {
 		// Let's create a chat!
-		chatMap.Action(func() {
+		chatMap.RAction(func() {
 			glog.Info("Chat session started")
 			cs.IsReady = false
 			partner.IsReady = false
@@ -87,13 +94,6 @@ func Chat(session sockjs.Session) {
 	}
 
 	chatMap.Set(sessionID, chatSession)
-
-	acceptedTypes := &map[string]string{
-		"image/jpeg": ".jpg",
-		"image/jpg":  ".jpg",
-		"image/png":  ".png",
-		"image/gif":  ".gif",
-	}
 
 	ticker := time.NewTicker(time.Second)
 
@@ -127,15 +127,15 @@ func Chat(session sockjs.Session) {
 			case "ready":
 				chatReady(sessionID, data["region"].(string))
 			case "typing":
-				chatMap.Action(func() {
+				chatMap.RAction(func() {
 					chatSession.Room.BroadcastOthers(sessionID, "typing", strconv.FormatBool(data["typing"].(bool)))
 				})
 			case "send":
-				chatMap.Action(func() {
+				chatMap.RAction(func() {
 					chatSession.Room.BroadcastOthers(sessionID, "message", data["message"].(string))
 				})
 			case "exit":
-				chatMap.Action(func() {
+				chatMap.RAction(func() {
 					glog.Info("Chat session ended")
 					chatSession.Room.BroadcastOthers(sessionID, "exit", "")
 
@@ -150,11 +150,13 @@ func Chat(session sockjs.Session) {
 				})
 			case "picture":
 				glog.Info("Picture received")
-				chatMap.Action(func() {
+				chatMap.RAction(func() {
 					chatSession.Room.BroadcastOthers(sessionID, "picturebefore", "true")
 					dataURL, err := dataurl.DecodeString(data["data"].(string))
 					if err != nil {
 						glog.Error("Problem decoding file: ", err)
+						// TODO: send message back to the user with error
+						return
 					}
 					filename := helpers.GetRandomString(8)
 
@@ -164,6 +166,8 @@ func Chat(session sockjs.Session) {
 						err = ioutil.WriteFile(MediaContent+filename+ext, dataURL.Data, 0644)
 						if err != nil {
 							glog.Error("Error saving file: ", err)
+							// TODO: send message back to the user with error
+							return
 						}
 						chatSession.Room.BroadcastOthers(sessionID, "picture", data["data"].(string))
 					}
