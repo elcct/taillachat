@@ -29,7 +29,7 @@ func main() {
 	}
 
 	api.Template = system.CurrentApplication.Template
-	api.MediaContent = system.CurrentApplication.Configuration.PublicPath + "/uploads/"
+	api.MediaContent = system.CurrentApplication.Configuration.UploadPath
 
 	router := mux.NewRouter()
 	// Setup static files

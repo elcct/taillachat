@@ -1,7 +1,15 @@
 package chat
 
+import (
+	"runtime"
+	"sync"
+)
+
 // Map keeps all sessions and actions
 type Map struct {
+	sync.RWMutex
+
+	// TODO: create sharded map of session to ease write locks
 	Sessions map[string]*Session
 	actions  chan func()
 }
@@ -13,11 +21,13 @@ func NewMap() *Map {
 		actions:  make(chan func()),
 	}
 
-	go func() {
-		for action := range m.actions {
-			action()
-		}
-	}()
+	for i := 0; i < runtime.NumCPU(); i++ {
+		go func() {
+			for action := range m.actions {
+				action()
+			}
+		}()
+	}
 
 	return m
 }
@@ -31,7 +41,7 @@ func (m *Map) Set(id string, session *Session) {
 
 // Get gets session from the sessions map
 func (m *Map) Get(id string) (session *Session) {
-	m.Action(func() {
+	m.RAction(func() {
 		session = m.Sessions[id]
 	})
 	return
@@ -41,7 +51,7 @@ func (m *Map) Get(id string) (session *Session) {
 func (m *Map) GetReadyIdsByRegion(region string) (sessions map[string]bool) {
 	sessions = make(map[string]bool)
 
-	m.Action(func() {
+	m.RAction(func() {
 		for key := range m.Sessions {
 			session := m.Sessions[key]
 			if session.Region == region && session.IsReady {
@@ -56,7 +66,7 @@ func (m *Map) GetReadyIdsByRegion(region string) (sessions map[string]bool) {
 func (m *Map) GetReadyIds() (sessions map[string]bool) {
 	sessions = make(map[string]bool)
 
-	m.Action(func() {
+	m.RAction(func() {
 		for key := range m.Sessions {
 			session := m.Sessions[key]
 			if session.IsReady {
@@ -69,7 +79,7 @@ func (m *Map) GetReadyIds() (sessions map[string]bool) {
 
 // GetNumberOfReadyAndChatting gets number of sessions ready and already chatting
 func (m *Map) GetNumberOfReadyAndChatting() (ready int, chatting int) {
-	m.Action(func() {
+	m.RAction(func() {
 		for key := range m.Sessions {
 			session := m.Sessions[key]
 			if session.IsReady {
@@ -91,10 +101,26 @@ func (m *Map) Close(id string) {
 	})
 }
 
-// Action sends action to be perform on the sessions
+// Action sends action to be performed on the sessions
+// acion is allowed to modify the session map
 func (m *Map) Action(fn func()) {
 	wait := make(chan bool)
 	m.actions <- func() {
+		m.Lock()
+		defer m.Unlock()
+		fn()
+		wait <- true
+	}
+	<-wait
+}
+
+// RAction sends action to be performed on the sessions
+// acion is allowed only to read the session map
+func (m *Map) RAction(fn func()) {
+	wait := make(chan bool)
+	m.actions <- func() {
+		m.RLock()
+		defer m.RUnlock()
 		fn()
 		wait <- true
 	}

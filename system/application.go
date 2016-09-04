@@ -26,6 +26,7 @@ func Init() (err error) {
 	publicPath := os.Getenv("TAILLA_PUBLIC_PATH")
 	templatePath := os.Getenv("TAILLA_TEMPLATE_PATH")
 	bind := os.Getenv("TAILLA_BIND")
+	uploadPath := os.Getenv("UPLOAD_PATH")
 
 	if publicPath == "" {
 		return errors.New("Missing TAILLA_PUBLIC_PATH")
@@ -36,10 +37,14 @@ func Init() (err error) {
 	if bind == "" {
 		bind = "0.0.0.0:8000"
 	}
+	if uploadPath == "" {
+		uploadPath = "/tmp"
+	}
 
 	config.PublicPath = publicPath
 	config.TemplatePath = templatePath
 	config.Bind = bind
+	config.UploadPath = uploadPath
 
 	CurrentApplication.Configuration = config
 
